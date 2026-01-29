@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SDIHS Interactive Map</title>
+<link rel="icon" href="fin.jpeg" type="image/x-icon">
+
+<style>
+/* GLOBAL */
+*{
+    box-sizing:border-box;
+    transition:0.3s ease;
+    margin:0;
+    padding:0;
+}
+
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: radial-gradient(circle at top, #0a1a3a, #020b1f);
+    color: #eaf6ff;
+}
+
+/* GLOW TEXT */
+h1, h2, h3 {
+    text-shadow: 0 0 5px #4fc3ff, 0 0 15px #4fc3ff, 0 0 30px #1e90ff;
+}
+
+p, a {
+    text-shadow: 0 0 6px rgba(79,195,255,.7);
+}
+
+/* HEADER */
+header {
+    background: linear-gradient(90deg, #0d47a1, #1976d2);
+    color: white;
+    text-align: center;
+    padding: 25px;
+    box-shadow: 0 0 30px rgba(79,195,255,.5);
+}
+
+/* TOP NAV */
+nav.topnav {
+    position: sticky;
+    top: 0;
+    z-index: 999;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(0,0,0,.4);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid rgba(79,195,255,.3);
+    padding: 0 20px;
+}
+
+/* TOPNAV LINKS */
+nav.topnav .nav-links {
+    display: flex;
+    justify-content: flex-start;
+    gap: 15px;
+    align-items: center;
+}
+
+/* LINKS */
+nav.topnav a {
+    padding: 14px 22px;
+    color: #bfe9ff;
+    text-decoration: none;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+nav.topnav a:hover {
+    background: rgba(79,195,255,.15);
+    box-shadow: inset 0 0 10px #4fc3ff;
+}
+
+/* HAMBURGER */
+.hamburger {
+    display: none;
+    flex-direction: column;
+    cursor: pointer;
+    padding: 10px;
+}
+
+.hamburger div {
+    width: 25px;
+    height: 3px;
+    background-color: #bfe9ff;
+    margin: 4px 0;
+    border-radius: 2px;
+}
+
+/* DROPDOWN */
+.dropdown {
+    position: relative;
+}
+
+.dropdown a::after {
+    content: ' ▼';
+    font-size: 0.8em;
+    color: #4fc3ff;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    top: 100%; 
+    left: 0;
+    background: rgba(10,20,50,.95);
+    min-width: 160px;
+    box-shadow: 0 0 15px rgba(79,195,255,.4);
+    border-radius: 6px;
+    animation: fadeDropdown 0.3s ease forwards;
+    z-index: 1000;
+}
+
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+.dropdown-content a {
+    padding: 10px 15px;
+    display: block;
+    color: #bfe9ff;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.dropdown-content a:hover {
+    background: rgba(79,195,255,.2);
+    box-shadow: 0 0 10px #4fc3ff;
+}
+
+/* DROPDOWN FADE ANIMATION */
+@keyframes fadeDropdown {
+    from {opacity: 0; transform: translateY(-5px);}
+    to {opacity: 1; transform: translateY(0);}
+}
+
+/* LAYOUT */
+.container {
+    display: flex;
+    padding: 0;
+    gap: 0;
+    opacity: 0;
+    transform: translateY(30px);
+    animation: fadeSlideUp 1s ease forwards;
+}
+
+@keyframes fadeSlideUp {
+    0% {opacity: 0; transform: translateY(30px);}
+    100% {opacity: 1; transform: translateY(0);}
+}
+
+/* SIDEBAR */
+nav.sidebar {
+    width: 220px;
+    background: linear-gradient(180deg,#081a3a,#020b1f);
+    padding: 20px;
+    border-radius: 0;
+    box-shadow: 0 0 25px rgba(79,195,255,.4);
+    transition: transform 0.4s ease, box-shadow 0.4s ease;
+}
+
+nav.sidebar.show {
+    animation: slideIn 0.4s forwards, glowPulse 1.5s infinite alternate;
+}
+
+@keyframes slideIn {
+    from {transform: translateX(-100%);}
+    to {transform: translateX(0);}
+}
+
+@keyframes glowPulse {
+    0% { box-shadow: 0 0 25px #4fc3ff; }
+    50% { box-shadow: 0 0 35px #1e90ff; }
+    100% { box-shadow: 0 0 25px #4fc3ff; }
+}
+
+.sidebar ul {
+    list-style: none;
+    padding: 0;
+}
+
+.sidebar li {
+    padding: 12px;
+    margin-bottom: 12px;
+    border-radius: 6px;
+    background: rgba(255,255,255,.05);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.sidebar li:hover {
+    background: rgba(79,195,255,.2);
+    box-shadow: 0 0 15px #4fc3ff, 0 0 30px #1e90ff, 0 0 50px #00e5ff;
+    transform: translateX(5px);
+    animation: neonPulse 1s infinite alternate;
+}
+
+@keyframes neonPulse {
+    0% { box-shadow: 0 0 10px #4fc3ff, 0 0 20px #1e90ff; }
+    50% { box-shadow: 0 0 20px #4fc3ff, 0 0 40px #1e90ff; }
+    100% { box-shadow: 0 0 10px #4fc3ff, 0 0 20px #1e90ff; }
+}
+
+/* CONTENT */
+article {
+    flex:1;
+    background: rgba(0,0,0,.45);
+    padding: 35px;
+    margin: 20px;
+    border-radius: 12px;
+    box-shadow: 0 0 35px rgba(79,195,255,.35);
+    animation: fadeIn .6s ease;
+    transition: box-shadow 0.5s ease, border 0.5s ease;
+    border: 2px solid transparent;
+}
+
+article:hover {
+    border: 2px solid #4fc3ff;
+    box-shadow: 0 0 40px #1e90ff, 0 0 25px #4fc3ff;
+}
+
+@keyframes fadeIn {
+    from {opacity:0; transform:scale(.97)}
+    to {opacity:1; transform:scale(1)}
+}
+
+article a {
+    color:#4fc3ff;
+    text-decoration:none;
+    font-weight:bold;
+}
+
+article a:hover {
+    text-shadow:0 0 15px #4fc3ff;
+}
+
+/* FOOTER */
+footer {
+    background: linear-gradient(90deg,#0d47a1,#1976d2);
+    color: white;
+    text-align: center;
+    padding: 15px;
+    box-shadow: 0 0 25px rgba(79,195,255,.4);
+    transition: box-shadow 0.5s ease, border 0.5s ease;
+    border-top: 2px solid transparent;
+}
+
+footer:hover {
+    border-top: 2px solid #4fc3ff;
+    box-shadow: 0 0 40px #1e90ff, 0 0 25px #4fc3ff;
+}
+
+/* RESPONSIVE MOBILE */
+@media screen and (max-width:768px){
+    .hamburger { display:flex; }
+    nav.topnav .nav-links { display:none; }
+    nav.sidebar {
+        position: fixed;
+        top: 80px;
+        left: 0;
+        height: 100%;
+        transform: translateX(-100%);
+        z-index: 998;
+    }
+    article { margin: 20px 10px; }
+}
+
+/* ===== LIGHT MODE ===== */
+body.light{
+    background: radial-gradient(circle at top, #e3f2fd, #bbdefb);
+    color:#0a1a3a;
+}
+
+body.light header{
+    background: linear-gradient(90deg,#64b5f6,#2196f3);
+}
+
+body.light nav.topnav{
+    background: rgba(255,255,255,.6);
+}
+
+body.light nav.topnav a{
+    color:#0a1a3a;
+}
+
+body.light article{
+    background: rgba(255,255,255,.85);
+    color:#0a1a3a;
+}
+
+/* ===== THEME TOGGLE BUTTON ===== */
+.theme-toggle{
+    position:absolute;
+    top:10px;
+    left:10px;
+    cursor:pointer;
+    font-size:16px;
+    padding:6px 10px;
+    border-radius:12px;
+    background:rgba(0,0,0,.5);
+    color:#bfe9ff;
+    border:1px solid rgba(79,195,255,.6);
+    z-index:1001;
+    box-shadow:0 0 8px rgba(79,195,255,.6);
+}
+
+body.light .theme-toggle{
+    background:rgba(255,255,255,.8);
+    color:#0a1a3a;
+    border-color:#2196f3;
+}
+
+/* ===== LIGHT MODE SIDEBAR ===== */
+body.light nav.sidebar{
+    background: linear-gradient(180deg, #ffffff, #e3f2fd);
+    color: #0a1a3a;
+    box-shadow: 0 0 25px rgba(33,150,243,.35);
+}
+
+body.light .sidebar li{
+    background: rgba(0,0,0,.06);
+    color: #0a1a3a;
+}
+
+body.light .sidebar li:hover{
+    background: rgba(33,150,243,.25);
+    box-shadow: 0 0 15px #2196f3, 0 0 30px #64b5f6;
+}
+
+/* GAMER VIBE BACKGROUND */
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: radial-gradient(circle at top, #0d001f, #1a001f, #000000);
+    color: #00ffea; /* neon cyan text for that gamer glow */
+}
+
+/* HEADER */
+header {
+    background: linear-gradient(90deg, #120078, #0000ff, #ff00ff);
+    color: #00ffea;
+    text-align: center;
+    padding: 25px;
+    box-shadow: 0 0 40px #00ffea;
+}
+
+/* SIDEBAR */
+nav.sidebar {
+    background: linear-gradient(180deg, #0b001f, #1a001f, #120078);
+    box-shadow: 0 0 30px #ff00ff;
+}
+
+/* LINKS HOVER */
+nav.sidebar li:hover {
+    background: rgba(0,255,234,0.2);
+    box-shadow: 0 0 20px #00ffea, 0 0 40px #ff00ff, 0 0 60px #ff00ff;
+}
+
+article {
+    background: rgba(0,0,0,0.75);
+    box-shadow: 0 0 30px #00ffea;
+    color: #00ffea;
+}
+
+footer {
+    background: linear-gradient(90deg, #120078, #0000ff, #ff00ff);
+    color: #00ffea;
+    box-shadow: 0 0 30px #00ffea;
+}
+
+/* GAMER-STYLE FLOATING HEADER */
+header h1 {
+    font-size: 5rem; /* huge and bold */
+    background: linear-gradient(90deg, #ff0000, #ff00ff, #00ffff, #00ff00, #ffff00);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    text-shadow: 
+        0 0 5px #ff0000, 
+        0 0 10px #ff00ff, 
+        0 0 20px #00ffff, 
+        0 0 30px #00ff00, 
+        0 0 40px #ffff00;
+    animation: floatNeon 3s ease-in-out infinite, neonGlow 2s ease-in-out infinite alternate;
+    display: inline-block;
+}
+
+/* FLOATING MOVEMENT */
+@keyframes floatNeon {
+    0%   { transform: translateY(0px) scale(1); }
+    25%  { transform: translateY(-15px) scale(1.05); }
+    50%  { transform: translateY(0px) scale(1.1); }
+    75%  { transform: translateY(15px) scale(1.05); }
+    100% { transform: translateY(0px) scale(1); }
+}
+
+/* NEON PULSE */
+@keyframes neonGlow {
+    0% { text-shadow: 
+        0 0 5px #ff0000, 0 0 10px #ff00ff, 0 0 20px #00ffff, 0 0 30px #00ff00, 0 0 40px #ffff00; }
+    50% { text-shadow: 
+        0 0 15px #ff0000, 0 0 25px #ff00ff, 0 0 35px #00ffff, 0 0 45px #00ff00, 0 0 55px #ffff00; }
+    100% { text-shadow: 
+        0 0 5px #ff0000, 0 0 10px #ff00ff, 0 0 20px #00ffff, 0 0 30px #00ff00, 0 0 40px #ffff00; }
+}
+
+</style>
+</head>
+
+<body>
+
+<header>
+    <h1>SDIHS</h1>
+    <p>Barangay Santo Domingo, Santa Rosa City, Laguna</p>
+</header>
+
+<!-- THEME TOGGLE BUTTON -->
+<div class="theme-toggle" onclick="toggleTheme()">🌙</div>
+
+<nav class="topnav">
+    <div class="hamburger" onclick="toggleSidebar()">
+        <div></div><div></div><div></div>
+    </div>
+    <div class="nav-links">
+        <a href="#" onclick="showHome()">Home</a>
+        <a href="#" onclick="showFirst()">First Quarter</a>
+        <a href="#" onclick="showSecond()">Second Quarter</a>
+
+        <div class="dropdown">
+            <a href="#">Activity</a>
+            <div class="dropdown-content">
+                <a href="#" onclick="showActivity1()">Activity1</a>
+                <a href="#" onclick="showActivity2()">Activity2</a>
+                <a href="#" onclick="showActivity3()">Activity3</a>
+            </div>
+        </div>
+
+        <div class="dropdown">
+            <a href="#">Assessment</a>
+            <div class="dropdown-content">
+                             <a href="#" onclick="showAssessment1()">Assessment1</a>
+                <a href="#" onclick="showAssessment2()">Assessment2</a>
+                <a href="#" onclick="showAssessment3()">Assessment3</a>
+            </div>
+        </div>
+
+        <div class="dropdown">
+            <a href="#">About</a>
+            <div class="dropdown-content">
+                <a href="https://www.facebook.com/eduardoamatajr" onclick="showAbout()">Eduardo Jr. Mata</a>
+                <a href="https://www.facebook.com/kelvin.fegalan.2024" onclick="showAbout()">Kelvin O.Fegalan</a>
+                <a href="https://www.facebook.com/justin.jacinto.148" onclick="showAbout()">Justin C. Jacinto</a>
+                <a href="https://www.facebook.com/edgarjose.bernabe.73" onclick="showAbout()">Edgar Jose Bernabe</a>
+                <a href="https://www.facebook.com/ynigo.shs" onclick="showAbout()">Michael Ynigo Romulo</a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="container">
+<nav class="sidebar" id="sidebar">
+    <ul>
+        <li onclick="showContent()">Content</li>
+        <li onclick="showObjectives()">Objectives</li>
+        <li onclick="showLegal()">Legal Basis</li>
+        <li onclick="showReference()">Reference</li>
+    </ul>
+</nav>
+
+<article id="content">
+    <h1>Welcome SDIHS</h1>
+    <p>Batang Santo likas na mabait,matalino at aktibo.<br>A place for talented students</p>
+</article>
+</div>
+
+<footer>
+    <p>10 - Banahaw</p>
+    <p>© 2026 SDIHS Code2play</p>
+</footer>
+
+<script>
+function animateChange(html){
+    const c = document.getElementById("content");
+    c.style.opacity = 0;
+    setTimeout(()=>{
+        c.innerHTML = html;
+        c.style.opacity = 1;
+    },200);
+}
+
+function showHome() { animateChange(`
+<h1>Mission</h1>
+<p>Mission:<br>
+To protect and promote the right of every Filipino to quality, equitable, culture-based, and complete basic education where:
+students learn in a child-friendly, gender-sensitive, safe, and motivating environment;
+teachers facilitate learning and nurture every learner;
+administrators and staff ensure an enabling and supportive environment;
+family, community, and stakeholders share responsibility for developing lifelong learners. </p>
+<h1>Vision</h1>
+<p>Vision:<br>
+We dream of Filipinos who passionately love their country and whose values and competencies enable them to realize their full potential and contribute meaningfully to building the nation. As a learner-centered public institution, the Department of Education continuously improves itself to better serve its stakeholders. </p>
+<h1>Core Values</h1>
+<p><b>Core Values:<br>
+Maka-Diyos (God-centered)<br>
+Maka-tao (Humane)<br>
+Makakalikasan (Pro-environment)<br>
+Makabansa (Patriotic)</p>
+`); }
+
+function showContent() { animateChange(`<h1>Content</h1><p><body>
+
+<h1>Learning HTML Through Practice</h1>
+
+<p>
+Playing with HTML is an effective and engaging way to learn the basics of web development.
+By actively writing, testing, and correcting HTML code, learners can better understand how
+web pages are structured and how different elements work together.
+</p>
+
+<p>
+Through hands-on interaction, users are encouraged to experiment with HTML tags, attributes,
+and layouts. Making mistakes during this process is part of learning, as errors help users
+recognize what is incorrect and understand how HTML should be written properly.
+</p>
+
+<p>
+An interactive HTML practice environment allows users to type code freely and receive
+feedback when something is written incorrectly. This helps learners improve their skills,
+develop problem-solving abilities, and gain confidence in writing clean and valid HTML code.
+</p>
+
+<p>
+By treating HTML learning as a form of play, users can enjoy exploring different elements,
+testing ideas, and seeing immediate results. This approach makes learning HTML more fun,
+motivating, and easier to understand, especially for beginners.
+</p>
+
+</body>.</p>`); }
+function showObjectives() { animateChange(`<h1>Objectives</h1>
+<p><h1>Project Objective</h1>
+
+<p>
+The objective of this project is to design and develop an interactive HTML learning tool
+that helps users understand and write correct HTML code. The system aims to identify
+common errors in HTML syntax, structure, and tag usage, and guide users in correcting
+these mistakes.
+</p>
+
+<p>
+This tool will provide clear explanations and examples to teach users how HTML elements
+should be properly written and organized. By offering immediate feedback and educational
+guidance, the project seeks to improve users’ knowledge of HTML fundamentals, promote
+good coding practices, and build confidence in creating well-structured web pages.
+</p>
+
+<p>
+Overall, the objective is to support beginners and learners by transforming HTML errors
+into learning opportunities, making the process of learning web development more
+interactive, effective, and user-friendly.
+</p>.</p>`); }
+function showLegal() { animateChange(`<h1>Legal Basis</h1><p>Code2Play is developed for educational and entertainment purposes only. All game content, designs, and codes are original and protected under copyright laws. Users agree to use the platform responsibly and not to copy, modify, or distribute any part of the game without permission. The developers are not liable for any misuse of the platform..</p>`); }
+function showReference() { animateChange(`<h1>Reference</h1><p>HTML, CSS, JavaScript,chat gpt and meta.</p>`); }
+
+function showFirst() { animateChange(`
+
+<h1>First Grading Period</h1>
+
+<p><a href="School Profile.html" target="_blank">School Profile</a></p>
+<p><a href="digital map.html">Digital Art</a></p>
+<p><a href="pt1.html" target="_blank">PT1</a></p>
+<p><a href="pt2.html" target="_blank">PT2</a></p>
+`); }
+function showSecond() { animateChange(`
+
+<h1>Second Grading Period</h1>
+
+<p><a href="8.html" target="_blank">IMAGE MAP</a></p>
+<p><a href="earthquake.html" target="_blank">Earthquake</a></p>
+<p><a href="table.html" target="_blank">Table</a></p>
+`); }
+
+
+
+function showActivity1() { animateChange(`
+
+<h1> Activity 1</h1>
+
+    <p>Try to answer the questions below. Click on "Show Answer" to check your answer!</p>
+
+    <hr>
+
+    <h2>1. Identify the Tag</h2>
+    <p>This tag is used to <strong>embed multimedia content like video or audio</strong>.</p>
+    <details>
+        <summary>Show Answer</summary>
+        <p>Answer: <code>&lt;video&gt;</code> or <code>&lt;audio&gt;</code></p>
+    </details>
+
+    <h2>2. Identify the Attribute</h2>
+    <p>Which attribute is used to <strong>link a CSS file</strong> to your HTML document?</p>
+    <details>
+        <summary>Show Answer</summary>
+        <p>Answer: <code>href</code> (used in the <code>&lt;link&gt;</code> tag)</p>
+    </details>
+
+    <h2>3. Identify the Semantic Tag</h2>
+    <p>Which tag is <strong>used to define self-contained content</strong>, like a blog post or article?</p>
+    <details>
+        <summary>Show Answer</summary>
+        <p>Answer: <code>&lt;article&gt;</code></p>
+    </details>
+
+    <h2>4. Identify the Tag</h2>
+    <p>This tag <strong>groups a block of form elements</strong> and can include a caption for the group.</p>
+    <details>
+        <summary>Show Answer</summary>
+        <p>Answer: <code>&lt;fieldset&gt;</code></p>
+    </details>
+
+    <h2>5. Identify the Tag or Attribute</h2>
+    <p>Which tag is used to <strong>show a tooltip when you hover over text</strong>?</p>
+    <details>
+        <summary>Show Answer</summary>
+        <p>Answer: <code>&lt;abbr&gt;</code> with the <code>title</code> attribute</p>
+    </details>
+
+    <h2>6. Identify the Tag</h2>
+    <p>This tag is <strong>used for defining a container for navigation links</strong> in a semantic way.</p>
+    <details>
+        <summary>Show Answer</summary>
+        <p>Answer: <code>&lt;nav&gt;</code></p>
+    </details>
+
+    <h2>7. Identify the Attribute</h2>
+    <p>Which attribute allows an image to <strong>scale responsively</strong> to its container?</p>
+    <details>
+        <summary>Show Answer</summary>
+        <p>Answer: <code>width="100%"</code> or use CSS <code>max-width</code></p>
+    </details>
+
+    <h2>8. Identify the Tag</h2>
+    <p>Which tag is <strong>used to define a caption for a &lt;figure&gt; element</strong>?</p>
+    <details>
+        <summary>Show Answer</summary>
+        <p>Answer: <code>&lt;figcaption&gt;</code></p>
+    </details>
+
+    <h2>9. Identify the Tag</h2>
+    <p>This HTML tag is <strong>deprecated</strong>, but used to create blinking text.</p>
+    <details>
+        <summary>Show Answer</summary>
+        <p>Answer: <code>&lt;blink&gt;</code></p>
+    </details>
+
+    <h2>10. Identify the Tag</h2>
+    <p>Which tag <strong>displays text in a fixed-width font</strong>?</p>
+    <details>
+        <summary>Show Answer</summary>
+        <p>Answer: <code>&lt;code&gt;</code> or <code>&lt;pre&gt;</code></p>
+    </details>
+
+    <hr>
+    
+`); }
+
+
+
+function showActivity2() { animateChange(`
+
+<h1> Activity 2</h1>
+ 
+
+<div class="container">
+    <h1>Advanced HTML Identification Activity</h1>
+
+    <form>
+
+        <!-- Section A: Identify the Tag -->
+        <h2>Section A: Identify the Tag</h2>
+        <div class="question">
+            1. Identify the HTML tag that creates a clickable link in the following code:  
+            <pre>&lt;a href="https://example.com"&gt;Visit Example&lt;/a&gt;</pre>
+            Answer: <input type="text" name="q1">
+        </div>
+
+        <div class="question">
+            2. Identify the HTML tag used to insert an image in the following code:  
+            <pre>&lt;img src="image.jpg" alt="A beautiful scenery"&gt;</pre>
+            Answer: <input type="text" name="q2">
+        </div>
+
+        <div class="question">
+            3. What is the HTML tag used for creating a table row in the code below:  
+            <pre>&lt;tr&gt;&lt;td&gt;Apple&lt;/td&gt;&lt;td&gt;Red&lt;/td&gt;&lt;/tr&gt;</pre>
+            Answer: <input type="text" name="q3">
+        </div>
+
+        <div class="question">
+            4. Identify the tag used for the largest heading in HTML:  
+            <pre>&lt;h1&gt;Welcome to My Website&lt;/h1&gt;</pre>
+            Answer: <input type="text" name="q4">
+        </div>
+
+        <!-- Section B: Identify the Attribute -->
+        <h2>Section B: Identify the Attribute</h2>
+        <div class="question">
+            5. In the following image tag, identify the attribute that specifies the image file:  
+            <pre>&lt;img src="landscape.jpg" alt="Mountain"&gt;</pre>
+            Answer: <input type="text" name="q5">
+        </div>
+
+        <div class="question">
+            6. In the link tag below, identify the attribute that defines the URL:  
+            <pre>&lt;a href="https://google.com"&gt;Google&lt;/a&gt;</pre>
+            Answer: <input type="text" name="q6">
+        </div>
+
+        <!-- Section C: Short Answer -->
+        <h2>Section C: Short Answer</h2>
+        <div class="question">
+            7. Explain the purpose of the "alt" attribute in the &lt;img&gt; tag:  
+            <textarea name="q7"></textarea>
+        </div>
+
+        <div class="question">
+            8. What is semantic HTML and why is it important?  
+            <textarea name="q8"></textarea>
+        </div>
+
+        <div class="question">
+            9. Identify the difference between the &lt;div&gt; and &lt;section&gt; tags in HTML:  
+            <textarea name="q9"></textarea>
+        </div>
+
+        <div class="question">
+            10. Look at the code below. Identify the tags used for the table header and table data:  
+            <pre>
+&lt;table&gt;
+  &lt;tr&gt;
+    &lt;th&gt;Name&lt;/th&gt;
+    &lt;th&gt;Age&lt;/th&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td&gt;Alice&lt;/td&gt;
+    &lt;td&gt;15&lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/table&gt;
+            </pre>
+            Answer: Table Header: <input type="text" name="q10a"><br>
+            Table Data: <input type="text" name="q10b">
+        </div>
+
+        <input type="submit" value="Submit Answers" class="submit-btn">
+
+    </form>
+</div>
+
+<hr>
+    
+`); }
+
+
+function showActivity3() { animateChange(`
+
+<h1> Activity 3</h1>
+  
+
+<div class="container">
+    <h1>Advanced HTML Activity</h1>
+
+    <form>
+
+        <!-- Section A: Multiple Choice -->
+        <h2>Section A: Multiple Choice</h2>
+
+        <div class="question">
+            1. Which HTML element is used to define the most important heading on a page?
+            <label><input type="radio" name="q1" value="a"> &lt;head&gt;</label>
+            <label><input type="radio" name="q1" value="b"> &lt;h6&gt;</label>
+            <label><input type="radio" name="q1" value="c"> &lt;h1&gt;</label>
+            <label><input type="radio" name="q1" value="d"> &lt;header&gt;</label>
+        </div>
+
+        <div class="question">
+            2. What is the correct HTML element for inserting an image?
+            <label><input type="radio" name="q2" value="a"> &lt;img&gt;</label>
+            <label><input type="radio" name="q2" value="b"> &lt;image&gt;</label>
+            <label><input type="radio" name="q2" value="c"> &lt;src&gt;</label>
+            <label><input type="radio" name="q2" value="d"> &lt;picture&gt;</label>
+        </div>
+
+        <div class="question">
+            3. Which attribute is required to specify the URL in a hyperlink?
+            <label><input type="radio" name="q3" value="a"> href</label>
+            <label><input type="radio" name="q3" value="b"> link</label>
+            <label><input type="radio" name="q3" value="c"> url</label>
+            <label><input type="radio" name="q3" value="d"> src</label>
+        </div>
+
+        <div class="question">
+            4. Which HTML element is used to group together form elements?
+            <label><input type="radio" name="q4" value="a"> &lt;form&gt;</label>
+            <label><input type="radio" name="q4" value="b"> &lt;fieldset&gt;</label>
+            <label><input type="radio" name="q4" value="c"> &lt;input&gt;</label>
+            <label><input type="radio" name="q4" value="d"> &lt;div&gt;</label>
+        </div>
+
+        <div class="question">
+            5. Which tag is used to define a table row?
+            <label><input type="radio" name="q5" value="a"> &lt;tr&gt;</label>
+            <label><input type="radio" name="q5" value="b"> &lt;td&gt;</label>
+            <label><input type="radio" name="q5" value="c"> &lt;th&gt;</label>
+            <label><input type="radio" name="q5" value="d"> &lt;table&gt;</label>
+        </div>
+
+        <!-- Section B: Matching -->
+        <h2>Section B: Matching</h2>
+        <p>Match the HTML Tag to the Description (Write the correct tag next to the description)</p>
+
+        <div class="question">
+            1. Used to create an unordered list: <input type="text" name="b1">
+        </div>
+        <div class="question">
+            2. Used to create an ordered list: <input type="text" name="b2">
+        </div>
+        <div class="question">
+            3. Creates a clickable link: <input type="text" name="b3">
+        </div>
+        <div class="question">
+            4. Paragraph text: <input type="text" name="b4">
+        </div>
+        <div class="question">
+            5. Highlights important text: <input type="text" name="b5">
+        </div>
+
+        <!-- Section C: Short Answer -->
+        <h2>Section C: Short Answer</h2>
+        <div class="question">
+            1. Explain the difference between &lt;div&gt; and &lt;section&gt; in HTML:
+            <textarea name="c1"></textarea>
+        </div>
+        <div class="question">
+            2. What is the purpose of the alt attribute in &lt;img&gt; tags?
+            <textarea name="c2"></textarea>
+        </div>
+        <div class="question">
+            3. Describe what semantic HTML is and why it is important:
+            <textarea name="c3"></textarea>
+        </div>
+        <div class="question">
+            4. Name three HTML5 structural elements and explain their use:
+            <textarea name="c4"></textarea>
+        </div>
+
+        <!-- Section D: Scenario -->
+        <h2>Section D: Scenario</h2>
+        <p>You are creating a website for your school. The website should have a header, navigation menu, main content area, and footer.</p>
+        <p>Draw a simple diagram or write the HTML tags you would use for each section:</p>
+        <textarea name="d1"></textarea>
+
+        <input type="submit" value="Submit Answers" class="submit-btn">
+    </form>
+</div>
+
+<hr>
+    
+`); }
+
+function showAssessment1() { animateChange(`
+
+<h1>Assessment 1</h1>
+
+<form id="quiz">
+
+        <div class="question">
+            <p>1. What is the main purpose of the header in the SDIHS Interactive Map?</p>
+            <input type="radio" name="q1" value="a"> a. To show the title and identity of the website<br>
+            <input type="radio" name="q1" value="b"> b. To display random images<br>
+            <input type="radio" name="q1" value="c"> c. To hide navigation links<br>
+            <input type="radio" name="q1" value="d"> d. To store website data
+        </div>
+
+        <div class="question">
+            <p>2. Why is a consistent color theme important in web design?</p>
+            <input type="radio" name="q2" value="a"> a. It improves visual appeal and readability<br>
+            <input type="radio" name="q2" value="b"> b. It makes the website slower<br>
+            <input type="radio" name="q2" value="c"> c. It confuses users<br>
+            <input type="radio" name="q2" value="d"> d. It removes animations
+        </div>
+
+        <div class="question">
+            <p>3. Which part of the website stays visible at the top when scrolling?</p>
+            <input type="radio" name="q3" value="a"> a. Top navigation bar<br>
+            <input type="radio" name="q3" value="b"> b. Footer<br>
+            <input type="radio" name="q3" value="c"> c. Article<br>
+            <input type="radio" name="q3" value="d"> d. Sidebar
+        </div>
+
+        <div class="question">
+            <p>4. What effect do animations add to the website?</p>
+            <input type="radio" name="q4" value="a"> a. Improves user engagement<br>
+            <input type="radio" name="q4" value="b"> b. Makes it boring<br>
+            <input type="radio" name="q4" value="c"> c. Removes content<br>
+            <input type="radio" name="q4" value="d"> d. Stops navigation
+        </div>
+
+        <div class="question">
+            <p>5. What is the role of borders and shadows in the design?</p>
+            <input type="radio" name="q5" value="a"> a. To highlight sections and improve focus<br>
+            <input type="radio" name="q5" value="b"> b. Decoration only<br>
+            <input type="radio" name="q5" value="c"> c. To hide content<br>
+            <input type="radio" name="q5" value="d"> d. To reduce visibility
+        </div>
+
+        <button type="submit">Submit</button>
+    </form>
+
+`); }
+function showAssessment2() { animateChange(`
+
+<h1>Assessment 2</h1>
+
+<form id="quiz2">
+
+    <div class="question">
+        <p>1. What does CSS stand for?</p>
+        <input type="radio" name="q1" value="a"> a. Cascading Style Sheets<br>
+        <input type="radio" name="q1" value="b"> b. Creative Style System<br>
+        <input type="radio" name="q1" value="c"> c. Computer Style Sheet<br>
+        <input type="radio" name="q1" value="d"> d. Color Style Syntax
+    </div>
+
+    <div class="question">
+        <p>2. What is the main function of HTML?</p>
+        <input type="radio" name="q2" value="a"> a. To structure web content<br>
+        <input type="radio" name="q2" value="b"> b. To animate graphics only<br>
+        <input type="radio" name="q2" value="c"> c. To store data<br>
+        <input type="radio" name="q2" value="d"> d. To design logos
+    </div>
+
+    <div class="question">
+        <p>3. Which tag is used to create a hyperlink?</p>
+        <input type="radio" name="q3" value="a"> a. &lt;a&gt;<br>
+        <input type="radio" name="q3" value="b"> b. &lt;link&gt;<br>
+        <input type="radio" name="q3" value="c"> c. &lt;href&gt;<br>
+        <input type="radio" name="q3" value="d"> d. &lt;nav&gt;
+    </div>
+
+    <div class="question">
+        <p>4. What does JavaScript mainly add to a website?</p>
+        <input type="radio" name="q4" value="a"> a. Interactivity and dynamic behavior<br>
+        <input type="radio" name="q4" value="b"> b. Page margins<br>
+        <input type="radio" name="q4" value="c"> c. Font styles only<br>
+        <input type="radio" name="q4" value="d"> d. Image compression
+    </div>
+
+    <div class="question">
+        <p>5. What is a web browser used for?</p>
+        <input type="radio" name="q5" value="a"> a. To access and view websites<br>
+        <input type="radio" name="q5" value="b"> b. To create servers<br>
+        <input type="radio" name="q5" value="c"> c. To edit databases<br>
+        <input type="radio" name="q5" value="d"> d. To design animations
+    </div>
+
+    <button type="submit">Submit</button>
+</form>
+`); }
+function showAssessment3() { animateChange(`
+
+<h1>Assessment 3</h1>
+
+    <form id="quiz3">
+
+    <div class="question">
+        <p>1. What is the main purpose of a navigation menu?</p>
+        <input type="radio" name="q1" value="a"> a. To help users move through the website<br>
+        <input type="radio" name="q1" value="b"> b. To decorate the page<br>
+        <input type="radio" name="q1" value="c"> c. To hide content<br>
+        <input type="radio" name="q1" value="d"> d. To slow loading speed
+    </div>
+
+    <div class="question">
+        <p>2. Why is readable font size important?</p>
+        <input type="radio" name="q2" value="a"> a. It makes content easier to understand<br>
+        <input type="radio" name="q2" value="b"> b. It wastes screen space<br>
+        <input type="radio" name="q2" value="c"> c. It removes images<br>
+        <input type="radio" name="q2" value="d"> d. It breaks the layout
+    </div>
+
+    <div class="question">
+        <p>3. What does a footer usually contain?</p>
+        <input type="radio" name="q3" value="a"> a. Contact info and copyright details<br>
+        <input type="radio" name="q3" value="b"> b. Main content of the page<br>
+        <input type="radio" name="q3" value="c"> c. Pop-up ads<br>
+        <input type="radio" name="q3" value="d"> d. Animations only
+    </div>
+
+    <div class="question">
+        <p>4. Why are icons useful on a website?</p>
+        <input type="radio" name="q4" value="a"> a. They visually represent actions or content<br>
+        <input type="radio" name="q4" value="b"> b. They confuse users<br>
+        <input type="radio" name="q4" value="c"> c. They hide text<br>
+        <input type="radio" name="q4" value="d"> d. They slow performance
+    </div>
+
+    <div class="question">
+        <p>5. What is the benefit of using white space?</p>
+        <input type="radio" name="q5" value="a"> a. It improves clarity and focus<br>
+        <input type="radio" name="q5" value="b"> b. It removes content<br>
+        <input type="radio" name="q5" value="c"> c. It wastes design area<br>
+        <input type="radio" name="q5" value="d"> d. It hides navigation
+    </div>
+
+    <button type="submit">Submit</button>
+</form>
+
+`); }
+
+function toggleSidebar() {
+    const sidebar = document.getElementById("sidebar");
+    sidebar.classList.toggle("show");
+    
+    const container = document.querySelector(".container");
+    container.style.animation = "fadeSlideUp 0.8s ease forwards";
+}
+
+function toggleTheme(){
+    document.body.classList.toggle("light");
+}
+</script>
+
+</body>
+</html>
